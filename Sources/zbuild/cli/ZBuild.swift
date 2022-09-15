@@ -9,8 +9,8 @@ import ArgumentParser
 struct ZBuild: AsyncParsableCommand {
     static var configuration = CommandConfiguration(
         abstract: "ZBuild",
-        subcommands: [Provisioning.self],
-        defaultSubcommand: Provisioning.self
+        subcommands: [Provisioning.self, Archive.self],
+        defaultSubcommand: Archive.self
     )
 
 //    @Flag(help: "Include a counter with each repetition.")

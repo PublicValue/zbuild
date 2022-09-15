@@ -58,24 +58,30 @@ class ACApi {
     func getProvisioningProfile(bundleId: String) async throws -> Profile? {
         let profiles = try await getProvisioningProfileIds()
 
-        print("Getting bundle IDs...")
-        // TODO dont get all, just until we have the correct one
-        let bundleIdToProfile = try await profiles.asyncMap { profile -> (BundleID, Profile) in
-            let request = APIEndpoint
-                    .v1
-                    .profiles.id(profile.id)
-                    .bundleID
-                    .get(fieldsBundleIDs: [.identifier, .name])
+        print("Getting bundle IDs for profiles...")
+        var found: Profile?
+        let bundleIdToProfile = try await profiles.asyncMap { profile -> (BundleID?, Profile) in
+            if (found == nil) {
+                let request = APIEndpoint
+                        .v1
+                        .profiles.id(profile.id)
+                        .bundleID
+                        .get(fieldsBundleIDs: [.identifier, .name])
 
-            let bundleId = try await provider.request(request).data
-            print("found bundle id: \(bundleId) for profile: \(profile.id)")
-            return (bundleId, profile)
+                let bundleIdDto = try await provider.request(request).data
+                print("found bundle id: \(bundleIdDto) for profile: \(profile.id)")
+                if (bundleIdDto.attributes?.identifier == bundleId) {
+                    found = profile
+                }
+                return (bundleIdDto, profile)
+            }
+            return (nil, profile)
         }
 
-        let relevantProfile = bundleIdToProfile.filter { (id, profile) in id.attributes?.identifier == bundleId }.first?.1
+//        let relevantProfile = bundleIdToProfile.filter { (id, profile) in id.attributes?.identifier == bundleId }.first?.1
 
-        print("Found profile for bundle id \(bundleId): \(relevantProfile)")
-        if let relevantProfile = relevantProfile {
+        print("Found profile for bundle id \(bundleId): \(found)")
+        if let relevantProfile = found {
             return try await getProvisionProfile(id: relevantProfile.id)
         } else {
             return nil
@@ -98,7 +104,7 @@ class ACApi {
     }
 
     func getProvisionProfile(id: String? = nil) async throws -> Profile? {
-        print("Getting profile for id \(id)")
+        print("Getting profile for id \(id ?? "none")")
         let request = APIEndpoint
                 .v1
                 .profiles

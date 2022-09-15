@@ -1,0 +1,80 @@
+//
+// Created by Julian Kalinowski on 15.09.22.
+//
+
+import Foundation
+import ArgumentParser
+import AppStoreConnect_Swift_SDK
+import Files
+
+struct Archive: AsyncParsableCommand {
+
+    static var configuration = CommandConfiguration(
+        abstract: "Archive project to xcarchive"
+    )
+
+    @Argument var scheme: String
+    @OptionGroup var options: AuthenticationOptions
+
+    @Argument var projectDir: String = "."
+    @Option var archivePath: String = "build"
+
+    @Option(help: "Base64 encoded signing key location") var signingKeyPath: String
+    @Option(help: "Password for the signing key, if any") var signingKeyPassword: String?
+
+    mutating func run() async throws {
+        print("AuthKeyPath: " + options.authenticationKeyPath)
+        print("Key ID: " + options.authenticationKeyID)
+        print("Issuer ID: " + options.authenticationKeyIssuerID)
+
+        let xcbuild = XCodeBuild(workingDir: projectDir)
+        let xcrun = XCRun(workingDir: projectDir)
+
+        let tempDir = try Folder(path: projectDir).createSubfolder(at: "build")
+
+        let bundleId = try await xcbuild.getBundleId()
+
+        print("Found Bundle id: \(bundleId)")
+
+        let getProfile = GetProfileInteractor()
+        let profile = try await getProfile(
+                options: options,
+                bundleId: bundleId
+//                output: try tempDir.createFile(named: "prov.mobileprovisioning").path
+        )
+
+        guard let profile = profile, let uuid = profile.attributes?.uuid else {
+            throw ZBuildError(message: "No profile or profile uuid missing")
+        }
+
+        print("Using provisioning profile: \(profile)")
+        let installProfile = InstallProvisioningProfileInteractor()
+        try await installProfile(profile: profile)
+
+        // TODO cache profile?
+
+        let installKey = InstallSigningKeyInteractor(tempDir: tempDir)
+
+        try await installKey(signingKeyPath: signingKeyPath, signingKeyPassword: signingKeyPassword)
+//        fatalError()
+
+        let timestamp = (Int(Date().timeIntervalSince1970))
+        print("Using timestamp: \(timestamp)")
+        try await xcrun.execute(arguments: ["agvtool", "new-version", "-all", "\(timestamp)"])
+
+        try await xcbuild.execute(arguments: [
+            "archive",
+            "-sdk", "iphoneos",
+            "-scheme", scheme,
+            "-destination", "generic/platform=iOS",
+            "-configuration", "Release",
+            "-allowProvisioningUpdates",
+            "-archivePath", Folder(path: "").createSubfolder(at: archivePath).createFile(at: scheme + ".xcarchive").path,
+            "CODE_SIGN_STYLE=Manual",
+            "CODE_SIGN_IDENTITY=iPhone Distribution",
+            "PROVISIONING_PROFILE=\(uuid)"
+        ])
+
+
+    }
+}

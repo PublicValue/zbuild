@@ -14,30 +14,23 @@ extension ZBuild {
         static var configuration
                 = CommandConfiguration(abstract: "Provisioning tools")
 
-        @Option
-        var authenticationKeyPath: String
-
-        @Option
-        var authenticationKeyID: String
-
-        @Option
-        var authenticationKeyIssuerID: String
+        @OptionGroup var options: AuthenticationOptions
 
         mutating func run() async throws {
-            print(authenticationKeyPath)
-            print(authenticationKeyID)
-            print(authenticationKeyIssuerID)
+            print(options.authenticationKeyPath)
+            print(options.authenticationKeyID)
+            print(options.authenticationKeyIssuerID)
 
 //            let dir = try! Folder(path: "")
 //            for file in dir.files {
 //                print(file)
 //            }
 
-            let file = try? File(path: authenticationKeyPath)
+            let file = try? File(path: options.authenticationKeyPath)
             guard let file = file else {
-                throw ZBuildError(message: "Could not find file \(authenticationKeyPath)")
+                throw ZBuildError(message: "Could not find file \(options.authenticationKeyPath)")
             }
-            let api = ACApi(issuerID: authenticationKeyIssuerID, privateKeyId: authenticationKeyID, privateKey: file)
+            let api = ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKey: file)
 
             do {
                 let profiles = try await api.getProvisioningProfiles()

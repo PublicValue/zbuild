@@ -4,7 +4,6 @@
 
 import Foundation
 import ArgumentParser
-import AppStoreConnect_Swift_SDK
 import Files
 
 struct Archive: AsyncParsableCommand {
@@ -13,11 +12,11 @@ struct Archive: AsyncParsableCommand {
         abstract: "Archive project to xcarchive"
     )
 
-    @Argument var scheme: String
+    @Option var scheme: String
     @OptionGroup var options: AuthenticationOptions
 
     @Argument var projectDir: String = "."
-    @Option var archivePath: String = "build"
+    @Option var archivePath: String = FileManager.default.currentDirectoryPath + "/build"
 
     @Option(help: "Base64 encoded signing key location") var signingKeyPath: String
     @Option(help: "Password for the signing key, if any") var signingKeyPassword: String?
@@ -26,11 +25,10 @@ struct Archive: AsyncParsableCommand {
         print("AuthKeyPath: " + options.authenticationKeyPath)
         print("Key ID: " + options.authenticationKeyID)
         print("Issuer ID: " + options.authenticationKeyIssuerID)
+        let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
         let xcbuild = XCodeBuild(workingDir: projectDir)
         let xcrun = XCRun(workingDir: projectDir)
-
-        let tempDir = try Folder(path: projectDir).createSubfolder(at: "build")
 
         let bundleId = try await xcbuild.getBundleId()
 
@@ -62,6 +60,10 @@ struct Archive: AsyncParsableCommand {
         print("Using timestamp: \(timestamp)")
         try await xcrun.execute(arguments: ["agvtool", "new-version", "-all", "\(timestamp)"])
 
+        let archivePath = try archivePath.toFile(defaultFileNameIfFolder: "\(scheme).xcarchive")
+
+        print("Archiving to: \(archivePath.path)")
+
         try await xcbuild.execute(arguments: [
             "archive",
             "-sdk", "iphoneos",
@@ -69,7 +71,7 @@ struct Archive: AsyncParsableCommand {
             "-destination", "generic/platform=iOS",
             "-configuration", "Release",
             "-allowProvisioningUpdates",
-            "-archivePath", Folder(path: "").createSubfolder(at: archivePath).createFile(at: scheme + ".xcarchive").path,
+            "-archivePath", archivePath.path,
             "CODE_SIGN_STYLE=Manual",
             "CODE_SIGN_IDENTITY=iPhone Distribution",
             "PROVISIONING_PROFILE=\(uuid)"

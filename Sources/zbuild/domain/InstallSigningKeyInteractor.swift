@@ -23,6 +23,7 @@ struct InstallSigningKeyInteractor {
         try signingFile.write(decoded)
 
         try await Security().importKey(filePath: signingFile.path, password: signingKeyPassword)
+        try signingFile.delete()
     }
 
 }

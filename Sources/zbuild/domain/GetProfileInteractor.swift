@@ -24,23 +24,10 @@ class GetProfileInteractor {
 
                 if let output = output {
                     print("Using output: \(output)")
-                    if FileManager.default.fileExists(atPath: output), let file = try? File(path: output) {
-                        try profile?.saveToFile(outFile: file)
-                    } else {
-                        // folder is given or file does not exist
-                        var folder = try? Folder(path: output)
-                        let url = URL(fileURLWithPath: output)
-                        let filename = url.pathComponents.last ?? "\(profile?.id ?? "unknownid").mobileprovision"
-                        if folder == nil {
-                            folder = try? Folder(path: url.deletingLastPathComponent().path)
-                        }
-                        if let folder = folder {
-                            let file = try folder.createFile(at: filename)
-                            try profile?.saveToFile(outFile: file)
-                        }
 
-                        throw ZBuildError(message: "Problem with output: \(output)")
-                    }
+                    let file = try output.toFile(defaultFileNameIfFolder: "\(profile?.id ?? "unknownid").mobileprovision")
+                    try profile?.saveToFile(outFile: file)
+
                     return profile
                 } else {
                     print(profile)
@@ -48,10 +35,6 @@ class GetProfileInteractor {
                 }
             } else {
                 throw ZBuildError(message: "Bundle id not valid: \(bundleId)")
-//                let profiles = try await api.getProvisioningProfiles()
-//                for profile in profiles {
-//                    print(profile)
-//                }
             }
 
         } catch APIProvider.Error.requestFailure(let statusCode, let errorResponse, _) {

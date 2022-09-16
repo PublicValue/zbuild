@@ -9,7 +9,7 @@ import ArgumentParser
 struct ZBuild: AsyncParsableCommand {
     static var configuration = CommandConfiguration(
         abstract: "ZBuild",
-        subcommands: [Provisioning.self, Archive.self],
+        subcommands: [Provisioning.self, Archive.self, ExportIpa.self],
         defaultSubcommand: Archive.self
     )
 

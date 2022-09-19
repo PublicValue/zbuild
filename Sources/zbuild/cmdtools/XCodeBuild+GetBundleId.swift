@@ -16,15 +16,6 @@ extension XCodeBuild {
                 }
             }
         }
-//        if let result = result {
-//            print(result)
-//            return "bundleid"
-//        }
         throw ZBuildError(message: "No bundle id found!")
     }
-
-//        function getProductName() {
-//        set -e
-//        xcodebuild -showBuildSettings | grep PRODUCT_NAME | tail -n 1 | cut -d"=" -f 2 | xargs
-
 }

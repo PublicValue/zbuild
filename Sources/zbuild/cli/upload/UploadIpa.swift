@@ -20,8 +20,6 @@ struct UploadIpa: AsyncParsableCommand {
     @Option(help: "If you set scheme, ipaPath will be inferred using defaults from exportIpa command") var scheme: String?
 
     mutating func run() async throws {
-        let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
-
         if scheme != nil && ipaPath != nil {
             throw ZBuildError("Scheme or ipaPath must be set!")
         }

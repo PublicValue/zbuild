@@ -8,16 +8,9 @@ import SystemPackage
 
 struct Security {
 
-//    let workingDir: String
-//
-//    init(workingDir: String = "/Users/julian/repos/kassehh/kasse-hh-ios") {
-//        self.workingDir = workingDir
-//    }
-
     func execute(arguments: [String]) async throws {
         let exitStatus:ExitStatus? = try Command.findInPath(withName: "security")?
                 .addArguments(arguments)
-//                .setCWD(FilePath(workingDir))
                 .wait()
 
         if let exitStatus = exitStatus {

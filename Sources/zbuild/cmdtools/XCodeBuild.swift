@@ -50,14 +50,6 @@ class XCodeBuild {
                 .setCWD(FilePath(workingDir))
                 .setStdout(.pipe)
                 .spawn()
-//        if output?.status.terminatedSuccessfully == false {
-//            throw ZBuildError(message: "Command failed with code: \(output?.status.exitCode)")
-//        }
-//        return output?.stdout
-
-//        for try await line in output!.stdout.lines {
-//            print(line)
-//        }
         let seq = output!.stdout.lines
         return seq
     }

@@ -10,8 +10,6 @@ struct InstallSigningKeyInteractor {
 
     let tempDir: Folder
 
-//    let profileDir = try? Folder(path: "~/Library/MobileDevice/Provisioning Profiles/")
-
     func callAsFunction(signingKeyPath: String, signingKeyPassword: String?) async throws {
         let data = try File(path: signingKeyPath).read()
         let decoded = Data(base64Encoded: data, options: .ignoreUnknownCharacters)

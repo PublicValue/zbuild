@@ -30,7 +30,6 @@ class GetProfileInteractor {
 
                     return profile
                 } else {
-                    print(profile)
                     return profile
                 }
             } else {

@@ -69,7 +69,7 @@ class ACApi {
                         .get(fieldsBundleIDs: [.identifier, .name])
 
                 let bundleIdDto = try await provider.request(request).data
-                print("found bundle id: \(bundleIdDto) for profile: \(profile.id)")
+                print("found bundle id: \(bundleIdDto.attributes?.identifier) for profile: \(profile.id)")
                 if (bundleIdDto.attributes?.identifier == bundleId) {
                     found = profile
                 }

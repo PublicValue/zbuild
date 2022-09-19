@@ -15,14 +15,31 @@ class XCodeBuild {
     }
 
     func execute(arguments: [String]) async throws {
-        let exitStatus:ExitStatus? = try Command.findInPath(withName: "xcodebuild")?
+        let xcbeautify = Command.findInPath(withName: "xcbeautify")
+
+        let xcodebuild = Command.findInPath(withName: "xcodebuild")?
                 .addArguments(arguments)
                 .setCWD(FilePath(workingDir))
-                .wait()
+
+        let exitStatus:ExitStatus?
+        if let xcbeautify = xcbeautify, let xcodebuild = xcodebuild {
+            // pipe output through xcbeautify
+            print("Found xcbeautify, piping output...")
+            let xcodebuildProc = try xcodebuild.setStdout(.pipe).spawn()
+
+            try xcbeautify
+                    .setStdin(.pipe(from: xcodebuildProc.stdout))
+                    .wait()
+            exitStatus = try xcodebuildProc.wait()
+        } else {
+            print("Could not find xcbeautify. For more beautiful output, please install xcbeautify.")
+            exitStatus = try xcodebuild?.wait()
+        }
+
 
         if let exitStatus = exitStatus {
             if !exitStatus.terminatedSuccessfully {
-                throw ZBuildError(message: "Command failed with code: \(exitStatus.exitCode)")
+                throw ZBuildError(message: "Command failed with code: \(exitStatus.exitCode.map{String($0)} ?? "Unknown")")
             }
         }
     }

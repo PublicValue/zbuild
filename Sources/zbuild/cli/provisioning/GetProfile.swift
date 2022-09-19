@@ -4,7 +4,7 @@
 
 import Foundation
 import ArgumentParser
-
+import Factory
 
 struct GetProfile: AsyncParsableCommand {
 
@@ -14,9 +14,7 @@ struct GetProfile: AsyncParsableCommand {
 
     @OptionGroup var options: AuthenticationOptions
 
-//    @Option var uuid: String?
-//    @Option var id: String?
-    @Option var bundleId: String?
+    @Option var bundleId: String
 
     @Option var output: String?
 
@@ -25,15 +23,11 @@ struct GetProfile: AsyncParsableCommand {
         print(options.authenticationKeyID)
         print(options.authenticationKeyIssuerID)
 
-//        if (uuid != nil && id != nil) {
-//            throw ZBuildError(message: "Only one of the following options can be used: uuid, id")
-//        }
+        let acapi = try? ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKeyPath: options.authenticationKeyPath)
+        Container.acApi.register { acapi }
 
         let getProfile = GetProfileInteractor()
         try await getProfile(
-            authenticationKeyIssuerID: options.authenticationKeyIssuerID,
-            authenticationKeyID: options.authenticationKeyID,
-            authenticationKeyPath: options.authenticationKeyPath,
             bundleId: bundleId,
             output: output
         )

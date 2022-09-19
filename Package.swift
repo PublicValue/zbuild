@@ -13,8 +13,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", exact: "1.1.4"),
         .package(url: "https://github.com/AvdLee/appstoreconnect-swift-sdk.git", exact: "2.2.0"),
         .package(url: "https://github.com/JohnSundell/Files", exact: "4.2.0"),
-        .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", exact: "1.1.2"
-        ),
+        .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", exact: "1.1.2"),
+        .package(url: "https://github.com/hmlongco/Factory.git", exact: "1.2.8" )
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -25,7 +25,8 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "AppStoreConnect-Swift-SDK", package: "appstoreconnect-swift-sdk"),
                 "Files",
-                "SwiftCommand"
+                "SwiftCommand",
+                "Factory"
             ]),
         .testTarget(
             name: "zbuildTests",

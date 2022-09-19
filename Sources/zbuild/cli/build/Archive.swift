@@ -5,6 +5,7 @@
 import Foundation
 import ArgumentParser
 import Files
+import Factory
 
 struct Archive: AsyncParsableCommand {
 
@@ -25,6 +26,10 @@ struct Archive: AsyncParsableCommand {
         print("AuthKeyPath: " + options.authenticationKeyPath)
         print("Key ID: " + options.authenticationKeyID)
         print("Issuer ID: " + options.authenticationKeyIssuerID)
+
+        let acapi = try? ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKeyPath: options.authenticationKeyPath)
+        Container.acApi.register { acapi }
+
         let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
         let xcbuild = XCodeBuild(workingDir: projectDir)
@@ -35,11 +40,7 @@ struct Archive: AsyncParsableCommand {
         print("Found Bundle id: \(bundleId)")
 
         let getProfile = GetProfileInteractor()
-        let profile = try await getProfile(
-                options: options,
-                bundleId: bundleId
-//                output: try tempDir.createFile(named: "prov.mobileprovisioning").path
-        )
+        let profile = try await getProfile(bundleId: bundleId)
 
         guard let profile = profile, let uuid = profile.attributes?.uuid else {
             throw ZBuildError(message: "No profile or profile uuid missing")
@@ -48,8 +49,6 @@ struct Archive: AsyncParsableCommand {
         print("Using provisioning profile: \(profile)")
         let installProfile = InstallProvisioningProfileInteractor()
         try await installProfile(profile: profile)
-
-        // TODO cache profile?
 
         let installKey = InstallSigningKeyInteractor(tempDir: tempDir)
 

@@ -19,8 +19,7 @@ struct ExportIpa: AsyncParsableCommand {
     @Option var scheme: String
 
     mutating func run() async throws {
-        // TODO use real tempdir with LocationDefaults.getTempDir
-        let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
+        let tempDir = try LocationDefaults.getTempDir()// try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
         let xcodebuild = XCodeBuild(workingDir: projectDir)
         let bundleId = try await xcodebuild.getBundleId()
@@ -41,6 +40,14 @@ struct ExportIpa: AsyncParsableCommand {
         print("Writing exportOptions.plist")
         let write = WritePlistInteractor()
         let plistFile = try tempDir.createFile(at: "exportOptions.plist")
+
+        defer {
+            do {
+                try plistFile.delete()
+            } catch {
+            }
+        }
+
         try write(outputFile: plistFile, options: ExportOptions(
             bundleId: bundleId,
             provisioningProfileName: provisioningProfileName

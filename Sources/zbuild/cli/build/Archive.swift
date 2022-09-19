@@ -68,6 +68,7 @@ struct Archive: AsyncParsableCommand {
             "archive",
             "-sdk", "iphoneos",
             "-scheme", scheme,
+            "-scmProvider", "system",
             "-destination", "generic/platform=iOS",
             "-configuration", "Release",
             "-allowProvisioningUpdates",

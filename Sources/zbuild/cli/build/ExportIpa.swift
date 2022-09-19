@@ -19,6 +19,7 @@ struct ExportIpa: AsyncParsableCommand {
     @Option var scheme: String
 
     mutating func run() async throws {
+        // TODO use real tempdir with LocationDefaults.getTempDir
         let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
         let xcodebuild = XCodeBuild(workingDir: projectDir)
@@ -45,8 +46,8 @@ struct ExportIpa: AsyncParsableCommand {
             provisioningProfileName: provisioningProfileName
         ))
 
-        let xcarchive = archivePath ?? FileManager.default.currentDirectoryPath + "/build/\(scheme).xcarchive"
-        let exportPath = exportPath ?? FileManager.default.currentDirectoryPath + "/build/\(scheme)-ipa"
+        let xcarchive = archivePath ?? LocationDefaults.getXCArchivePath(for: scheme)
+        let exportPath = exportPath ?? LocationDefaults.getIpaExportDir(for: scheme)
 
         print("Exporting to: \(exportPath)")
         try await xcodebuild.exportIpa(

@@ -13,9 +13,10 @@ struct XCRun {
         self.workingDir = workingDir
     }
 
-    func execute(arguments: [String]) async throws {
+    func execute(arguments: [String], envVariables: [String: String] = [:]) async throws {
         let exitStatus:ExitStatus? = try Command.findInPath(withName: "xcrun")?
                 .addArguments(arguments)
+                .setEnvVariables(envVariables)
                 .setCWD(FilePath(workingDir))
                 .wait()
 

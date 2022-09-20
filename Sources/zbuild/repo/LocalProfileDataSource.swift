@@ -11,6 +11,7 @@ class LocalProfileDataSource {
 
     func getLocalProfile(bundleId: String) throws -> DomainProfile? {
         let profileDir = try getOrCreateFolder(profilePath)
+        print("Reading profiles from: \(profileDir)")
         guard let profileDir = profileDir else {
             throw ZBuildError("Provision Profile dir not found and could not be created: \(profilePath)")
         }
@@ -37,10 +38,15 @@ class LocalProfileDataSource {
                 return profiles[0]
             }
         }()
-        if let data = try result?.1.read() {
-            return result?.0.toDomain(rawData: data)
+
+        if let result = result {
+            if let data = try? result.1.read() {
+                return result.0.toDomain(rawData: data)
+            } else {
+                throw ZBuildError("Could not read file to rawData \(result.1) for profile: \(result.0)")
+            }
         } else {
-            throw ZBuildError("Could not read file to rawData \(result?.1) for profile")
+            return nil
         }
     }
 
@@ -54,7 +60,6 @@ class LocalProfileDataSource {
     }
 
     private func getOrCreateFolder(_ path: String?) throws -> Folder? {
-        print(path)
         guard let path = path else {
             throw ZBuildError("No folder given")
         }

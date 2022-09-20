@@ -20,6 +20,7 @@ struct InstallSigningKeyInteractor {
         let signingFile = try tempDir.createFile(at: "signing.p12")
         try signingFile.write(decoded)
 
+        print("Installing signing key...")
         try await Security().importKey(filePath: signingFile.path, password: signingKeyPassword)
         try signingFile.delete()
     }

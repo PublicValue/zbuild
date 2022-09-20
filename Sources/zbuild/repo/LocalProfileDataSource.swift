@@ -7,11 +7,16 @@ import Files
 import AppStoreConnect_Swift_SDK
 
 class LocalProfileDataSource {
-    let profileDir = try? Folder(path: "~/Library/MobileDevice/Provisioning Profiles/")
+    let profilePath = "~/Library/MobileDevice/Provisioning Profiles/"
 
     func getLocalProfile(bundleId: String) throws -> DomainProfile? {
+        var profileDir = try? Folder(path: profilePath)
+        if profileDir == nil {
+            try FileManager.default.createDirectory(atPath: profilePath, withIntermediateDirectories: true)
+            profileDir = try? Folder(path: profilePath)
+        }
         guard let profileDir = profileDir else {
-            throw ZBuildError("Provision Profile dir not found")
+            throw ZBuildError("Provision Profile dir not found and could not be created: \(profilePath)")
         }
 
         let profiles: [(MobileProvision, File)] = profileDir.files.map { file -> (MobileProvision, File)? in

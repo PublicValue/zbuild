@@ -42,18 +42,22 @@ struct Archive: AsyncParsableCommand {
         let getProfile = GetProfileInteractor()
         let profile = try await getProfile(bundleId: bundleId)
 
-        guard let profile = profile, let uuid = profile.attributes?.uuid else {
+        guard let profile = profile else {
             throw ZBuildError(message: "No profile or profile uuid missing")
         }
 
         print("Using provisioning profile: \(profile)")
-        let installProfile = InstallProvisioningProfileInteractor()
-        try await installProfile(profile: profile)
+
+        if profile.type == .remote {
+            print("Installing profile locally...")
+            let installProfile = InstallProvisioningProfileInteractor()
+            try await installProfile(profile: profile)
+        }
+
+        // TODO check if profile matches signing key
 
         let installKey = InstallSigningKeyInteractor(tempDir: tempDir)
-
         try await installKey(signingKeyPath: signingKeyPath, signingKeyPassword: signingKeyPassword)
-//        fatalError()
 
         let timestamp = (Int(Date().timeIntervalSince1970))
         print("Using timestamp: \(timestamp)")
@@ -74,7 +78,7 @@ struct Archive: AsyncParsableCommand {
             "-archivePath", archivePath.path,
             "CODE_SIGN_STYLE=Manual",
             "CODE_SIGN_IDENTITY=iPhone Distribution",
-            "PROVISIONING_PROFILE=\(uuid)"
+            "PROVISIONING_PROFILE=\(profile.uuid)"
         ])
 
 

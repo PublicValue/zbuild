@@ -24,16 +24,15 @@ struct ExportIpa: AsyncParsableCommand {
         let xcodebuild = XCodeBuild(workingDir: projectDir)
         let bundleId = try await xcodebuild.getBundleId()
 
-        // Get Provisioning Profile from Local
-        let getLocalProfile = GetLocalProvisioningProfileInteractor()
-        let profile = try await getLocalProfile(bundleId: bundleId)
+        let profile = try await GetProfileInteractor()(bundleId: bundleId)
+
+        // TODO check if profile matches signing key
 
         var provisioningProfileName: String
         if let profile = profile {
             print("Using profile: \(profile.name) uuid:\(profile.uuid)")
             provisioningProfileName = profile.name
         } else {
-            // TODO download from apple again
             throw ZBuildError("Profile for \(bundleId) not found in local Provisioning Profiles. Downloading not implemented in ExportIPA.")
         }
 

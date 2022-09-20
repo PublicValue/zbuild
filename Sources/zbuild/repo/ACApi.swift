@@ -47,17 +47,17 @@ class ACApi {
         self.configuration = configuration
     }
 
-    func getProvisioningProfiles() async throws -> [Profile] {
+    func getProvisioningProfiles() async throws -> [DomainProfile] {
         let request = APIEndpoint
                 .v1
                 .profiles
                 .get()
 
         let profiles = try await provider.request(request).data
-        return profiles
+        return try profiles.map { try $0.toDomain() }
     }
 
-    func getProvisioningProfile(bundleId: String) async throws -> Profile? {
+    func getProvisioningProfile(bundleId: String) async throws -> DomainProfile? {
         let profiles = try await getProvisioningProfileIds()
 
         print("Getting bundle IDs for profiles...")
@@ -90,7 +90,7 @@ class ACApi {
         }
     }
 
-    func getProvisioningProfileIds() async throws -> [Profile] {
+    private func getProvisioningProfileIds() async throws -> [Profile] {
         print("Getting all profile ids...")
         let request = APIEndpoint
                 .v1
@@ -105,7 +105,7 @@ class ACApi {
         return profiles
     }
 
-    func getProvisionProfile(id: String? = nil) async throws -> Profile? {
+    func getProvisionProfile(id: String? = nil) async throws -> DomainProfile? {
         print("Getting profile for id \(id ?? "none")")
         let request = APIEndpoint
                 .v1
@@ -115,7 +115,7 @@ class ACApi {
                         filterID: id.map {[$0]}
                 ))
         let profiles = try await provider.request(request).data
-        return profiles.first
+        return try profiles.first?.toDomain()
     }
 
     func getApps() async throws -> [App] {

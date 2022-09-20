@@ -10,15 +10,10 @@ class LocalProfileDataSource {
     let profilePath = "~/Library/MobileDevice/Provisioning Profiles/"
 
     func getLocalProfile(bundleId: String) throws -> DomainProfile? {
-        var profileDir = try? Folder(path: profilePath)
-        if profileDir == nil {
-            try FileManager.default.createDirectory(atPath: profilePath, withIntermediateDirectories: true)
-            profileDir = try? Folder(path: profilePath)
-        }
+        let profileDir = try getOrCreateFolder(profilePath)
         guard let profileDir = profileDir else {
             throw ZBuildError("Provision Profile dir not found and could not be created: \(profilePath)")
         }
-
         let profiles: [(MobileProvision, File)] = profileDir.files.map { file -> (MobileProvision, File)? in
                     let profile = MobileProvision.read(from: file.path)
                     if let profile = profile {
@@ -50,11 +45,22 @@ class LocalProfileDataSource {
     }
 
     func saveProfile(profile: DomainProfile) throws {
+        let profileDir = try getOrCreateFolder(profilePath)
         guard let profileDir = profileDir else {
             throw ZBuildError("Provision Profile dir not found")
         }
         let outputFile = try! profileDir.createFile(at: profile.uuid + ".mobileprovision")
         try profile.saveToFile(outFile: outputFile)
+    }
+
+    private func getOrCreateFolder(_ path: String) throws -> Folder? {
+        let profileDir = try? Folder(path: profilePath)
+        if profileDir == nil {
+            try FileManager.default.createDirectory(atPath: profilePath, withIntermediateDirectories: true)
+            return try? Folder(path: profilePath)
+        } else {
+            return profileDir
+        }
     }
 }
 

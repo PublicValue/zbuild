@@ -7,7 +7,7 @@ import Files
 import AppStoreConnect_Swift_SDK
 
 class LocalProfileDataSource {
-    let profilePath = "~/Library/MobileDevice/Provisioning Profiles/"
+    let profilePath = FileManager.default.homeDirectoryForCurrentUser.path + "/Library/MobileDevice/Provisioning Profiles/"
 
     func getLocalProfile(bundleId: String) throws -> DomainProfile? {
         let profileDir = try getOrCreateFolder(profilePath)
@@ -53,11 +53,15 @@ class LocalProfileDataSource {
         try profile.saveToFile(outFile: outputFile)
     }
 
-    private func getOrCreateFolder(_ path: String) throws -> Folder? {
-        let profileDir = try? Folder(path: profilePath)
+    private func getOrCreateFolder(_ path: String?) throws -> Folder? {
+        print(path)
+        guard let path = path else {
+            throw ZBuildError("No folder given")
+        }
+        let profileDir = try? Folder(path: path)
         if profileDir == nil {
-            try FileManager.default.createDirectory(atPath: profilePath, withIntermediateDirectories: true)
-            return try? Folder(path: profilePath)
+            try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
+            return try? Folder(path: path)
         } else {
             return profileDir
         }

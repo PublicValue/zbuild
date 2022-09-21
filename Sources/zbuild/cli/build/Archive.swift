@@ -81,6 +81,7 @@ struct Archive: AsyncParsableCommand {
             "PROVISIONING_PROFILE=\(profile.uuid)"
         ])
 
-
+        let deleteKey = DeleteKeyChainInteractor()
+        try await deleteKey()
     }
 }

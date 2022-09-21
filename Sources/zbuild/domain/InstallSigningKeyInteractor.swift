@@ -6,6 +6,12 @@ import Foundation
 import AppStoreConnect_Swift_SDK
 import Files
 
+
+let keychainName = "zbuild.keychain"
+
+/**
+ see https://github.com/Apple-Actions/import-codesign-certs/blob/86acf512671cb6f09237a8440571fb97925c2394/src/security.ts#L50
+ */
 struct InstallSigningKeyInteractor {
 
     let tempDir: Folder
@@ -23,15 +29,23 @@ struct InstallSigningKeyInteractor {
         print("Installing signing key...")
         let password = UUID().uuidString
 
+        let security = Security()
+
         do {
-            try await Security().createKeychain(name: "zbuild", password: password)
+            try await security.deleteKeychain(name: keychainName)
         } catch {
-            print("Could not create keychain, trying to use existing...")
+            print("Could not delete keychain...")
         }
-        try await Security().setDefaultKeychain(name: "zbuild")
-        try await Security().unlockKeychain(name: "zbuild", password: password)
-        try await Security().importKey(filePath: signingFile.path, password: signingKeyPassword)
-        try await Security().addKeychainToAccessList(name: "zbuild")
+        try await security.createKeychain(name: keychainName, password: password)
+//        try await security.setDefaultKeychain(name: keychainName)
+        try await security.unlockKeychain(name: keychainName, password: password)
+        try await security.importKey(keyChain: keychainName, filePath: signingFile.path, password: signingKeyPassword)
+        try await security.setPartitionList(name: keychainName, password: password)
+        try await security.setTimeout(name: keychainName, value: 600)
+
+        try await security.addKeychainToAccessList(name: keychainName)
+
+        print("import done")
         try signingFile.delete()
     }
 

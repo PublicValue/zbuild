@@ -11,6 +11,7 @@ struct Security {
     let cmdName = "security"
 
     func execute(arguments: [String]) async throws {
+        print("Calling \(cmdName) \(arguments)")
         let exitStatus:ExitStatus? = try Command.findInPath(withName: cmdName)?
                 .addArguments(arguments)
                 .wait()
@@ -33,19 +34,21 @@ struct Security {
 }
 
 extension Security {
-    func importKey(filePath: String, password: String?, keychain: String = "zbuild") async throws {
+    func importKey(keyChain:String, filePath: String, password: String?) async throws {
+        // -T  Specify an application which may access the imported key (multiple -T options are allowed)
+        var args = ["import", filePath, "-k", keyChain, "-T", "/usr/bin/codesign", "-T", "/usr/bin/security"]
         if let password = password {
-            try await execute(arguments: ["import", filePath, "-P", password])
-        } else {
-            try await execute(arguments: ["import", filePath])
+            args.append("-P")
+            args.append(password)
         }
+        try await execute(arguments: args)
     }
 
     func deleteKeychain(name: String = "zbuild") async throws {
         try await execute(arguments: ["delete-keychain", name])
     }
 
-    func createKeychain(name: String = "zbuild", password: String = "") async throws {
+    func createKeychain(name: String = "zbuild", password: String) async throws {
         try await execute(arguments: ["create-keychain", "-p", password, name])
     }
 
@@ -55,6 +58,18 @@ extension Security {
 
     func unlockKeychain(name: String = "zbuild", password: String) async throws {
         try await execute(arguments: ["unlock-keychain", "-p", password, name])
+    }
+
+    func setTimeout(name: String = "zbuild", value: Int = 600) async throws {
+        let keychainPath = FileManager.default.homeDirectoryForCurrentUser.path + "/Library/Keychains/\(name)-db"
+        try await execute(arguments: ["set-keychain-settings", "-t", "\(value)", "-u", keychainPath])
+    }
+
+
+    func setPartitionList(name: String, password: String) async throws {
+//        security set-key-partition-list -S apple-tool:,apple: -s -k $PASS ~/Library/Keychains/login.keychain-db
+        let keychainPath = FileManager.default.homeDirectoryForCurrentUser.path + "/Library/Keychains/\(name)-db"
+        try await execute(arguments: ["set-key-partition-list", "-S", "apple-tool:,apple:", "-s", "-k", password, keychainPath])
     }
 
     func addKeychainToAccessList(name: String = "zbuild") async throws {
@@ -74,6 +89,5 @@ extension Security {
         args.append(keychainPath)
         print("Setting key chain access list: \(args)")
         try await execute(arguments: args)
-//        security list-keychains -s `security list-keychains | xargs` ~/Library/Keychains/zbuild-db
     }
 }

@@ -22,7 +22,7 @@ class XCodeBuild {
                 .setCWD(FilePath(workingDir))
 
         let exitStatus:ExitStatus?
-        if let xcbeautify = xcbeautify, let xcodebuild = xcodebuild {
+        if let xcbeautify = xcbeautify, let xcodebuild = xcodebuild, false {
             // pipe output through xcbeautify
             print("Found xcbeautify, piping output...")
             let xcodebuildProc = try xcodebuild.setStdout(.pipe).spawn()

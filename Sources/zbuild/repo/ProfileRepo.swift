@@ -40,7 +40,7 @@ class ProfileRepo {
     }
 
     private func getLocalProfile(for bundleId: String) throws -> DomainProfile? {
-        // TODO check if expired or something
+        // TODO check if expired or cloud managed
         return try local.getLocalProfile(bundleId: bundleId)
     }
 

@@ -21,7 +21,17 @@ struct InstallSigningKeyInteractor {
         try signingFile.write(decoded)
 
         print("Installing signing key...")
+        let password = UUID().uuidString
+
+        do {
+            try await Security().createKeychain(name: "zbuild", password: password)
+        } catch {
+            print("Could not create keychain, trying to use existing...")
+        }
+        try await Security().setDefaultKeychain(name: "zbuild")
+        try await Security().unlockKeychain(name: "zbuild", password: password)
         try await Security().importKey(filePath: signingFile.path, password: signingKeyPassword)
+        try await Security().addKeychainToAccessList(name: "zbuild")
         try signingFile.delete()
     }
 

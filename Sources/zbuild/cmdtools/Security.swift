@@ -44,6 +44,15 @@ extension Security {
         try await execute(arguments: args)
     }
 
+    func importCert(keyChain: String, _ data: Data) async throws {
+        let tempDir = try LocationDefaults.getTempDir().createSubfolderIfNeeded(at: "certs")
+        let certName = UUID().uuidString + ".cer"
+        let file = try tempDir.createFileIfNeeded(at: certName)
+        try file.write(data)
+        var args = ["import", file.path, "-k", keyChain]
+        try await execute(arguments: args)
+    }
+
     func deleteKeychain(name: String = "zbuild") async throws {
         try await execute(arguments: ["delete-keychain", name])
     }
@@ -84,10 +93,9 @@ extension Security {
             }
         }
 
-        var args = ["list-keychains", "-s"]
+        var args = ["list-keychains", "-d", "user", "-s"]
         args.append(contentsOf: chains)
         args.append(keychainPath)
-        print("Setting key chain access list: \(args)")
         try await execute(arguments: args)
     }
 }

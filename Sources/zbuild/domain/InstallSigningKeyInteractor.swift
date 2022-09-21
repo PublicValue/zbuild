@@ -40,6 +40,9 @@ struct InstallSigningKeyInteractor {
 //        try await security.setDefaultKeychain(name: keychainName)
         try await security.unlockKeychain(name: keychainName, password: password)
         try await security.importKey(keyChain: keychainName, filePath: signingFile.path, password: signingKeyPassword)
+
+        try await security.importCert(keyChain: keychainName, Certs.AppleWWDRCA)
+        try await security.importCert(keyChain: keychainName, Certs.AppleWWDRCAG3)
         try await security.setPartitionList(name: keychainName, password: password)
         try await security.setTimeout(name: keychainName, value: 600)
 

@@ -58,19 +58,21 @@ extension Security {
     }
 
     func addKeychainToAccessList(name: String = "zbuild") async throws {
+        let keychainPath = FileManager.default.homeDirectoryForCurrentUser.path + "/Library/Keychains/\(name)-db"
+
         let existingKeychains = try await executeWithResult(arguments: ["list-keychains"])
         var chains:[String] = []
         for try await line in existingKeychains {
-            print(line)
-            chains.append(line)
+            let cleaned = line.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\"", with: "")
+            if cleaned != keychainPath {
+                chains.append(cleaned)
+            }
         }
-
-
-        let keychainPath = FileManager.default.homeDirectoryForCurrentUser.path + "/Library/Keychains/\(name)-db"
 
         var args = ["list-keychains", "-s"]
         args.append(contentsOf: chains)
         args.append(keychainPath)
+        print("Setting key chain access list: \(args)")
         try await execute(arguments: args)
 //        security list-keychains -s `security list-keychains | xargs` ~/Library/Keychains/zbuild-db
     }

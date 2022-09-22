@@ -5,6 +5,7 @@
 import Foundation
 import Files
 import ArgumentParser
+import Factory
 
 struct ExportIpa: AsyncParsableCommand {
 
@@ -18,13 +19,25 @@ struct ExportIpa: AsyncParsableCommand {
     @Option var exportPath: String?
     @Option var scheme: String
 
+    @OptionGroup var options: AuthenticationOptions
+
+    @Option(help: "Base64 encoded signing key location") var signingKeyPath: String
+    @Option(help: "Password for the signing key, if any") var signingKeyPassword: String?
+
     mutating func run() async throws {
         let tempDir = try LocationDefaults.getTempDir()// try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
         let xcodebuild = XCodeBuild(workingDir: projectDir)
         let bundleId = try await xcodebuild.getBundleId()
 
-        let profile = try await GetProfileInteractor()(bundleId: bundleId)
+        let acapi = try? ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKeyPath: options.authenticationKeyPath)
+        Container.acApi.register { acapi }
+
+        let getProfile = GetProfileInteractor()
+        let profile = try await getProfile(bundleId: bundleId)
+
+        let installKey = InstallSigningKeyInteractor(tempDir: tempDir)
+        try await installKey(signingKeyPath: signingKeyPath, signingKeyPassword: signingKeyPassword)
 
         // TODO check if profile matches signing key
 
@@ -33,7 +46,7 @@ struct ExportIpa: AsyncParsableCommand {
             print("Using profile: \(profile.name) uuid:\(profile.uuid)")
             provisioningProfileName = profile.name
         } else {
-            throw ZBuildError("Profile for \(bundleId) not found in local Provisioning Profiles. Downloading not implemented in ExportIPA.")
+            throw ZBuildError(message: "No profile found for bundle \(bundleId)")
         }
 
         print("Writing exportOptions.plist")
@@ -61,5 +74,8 @@ struct ExportIpa: AsyncParsableCommand {
             exportPath: exportPath,
             exportOptionsPlist: plistFile.path
         )
+
+        let deleteKey = DeleteKeyChainInteractor()
+        try await deleteKey()
     }
 }

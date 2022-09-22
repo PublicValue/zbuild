@@ -6,11 +6,10 @@ import Foundation
 import Factory
 import AppStoreConnect_Swift_SDK
 
-// TODO: convert both profile types (local + remote) to a unified datatype that can be used interchangeably
 class ProfileRepo {
 
     @Injected(Container.localProfileDataSource) private var local: LocalProfileDataSource
-    @Injected(Container.acApi) private var api: ACApi?
+    @Injected(Container.acApi) private var api: ACApi!
 
     func getProfile(for bundleId: String) async throws -> DomainProfile? {
         let local = try getLocalProfile(for: bundleId)
@@ -26,7 +25,7 @@ class ProfileRepo {
 
     private func getRemoteProfile(for bundleId: String) async throws -> DomainProfile? {
         do {
-            let profile = try await api?.getProvisioningProfile(bundleId: bundleId)
+            let profile = try await api.getProvisioningProfile(bundleId: bundleId)
             return profile
         } catch APIProvider.Error.requestFailure(let statusCode, let errorResponse, _) {
             print("Request failed with statuscode: \(statusCode) and the following errors:")

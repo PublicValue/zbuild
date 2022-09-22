@@ -43,7 +43,7 @@ struct Archive: AsyncParsableCommand {
         let profile = try await getProfile(bundleId: bundleId)
 
         guard let profile = profile else {
-            throw ZBuildError(message: "No profile or profile uuid missing")
+            throw ZBuildError(message: "No profile found for bundle \(bundleId)")
         }
 
         print("Using provisioning profile: \(profile)")

@@ -47,48 +47,53 @@ class ACApi {
         self.configuration = configuration
     }
 
-    func getProvisioningProfiles() async throws -> [DomainProfile] {
-        // TODO use: APIEndpoint.v1.bundleIDs.get()
+    func getProvisioningProfile(bundleId: String, profileType: Profile.Attributes.ProfileType? = nil) async throws -> DomainProfile? {
+        print("Getting bundle from API...")
         let request = APIEndpoint
                 .v1
-                .profiles
-                .get()
+                .bundleIDs
+                .get(parameters: .init(
+                        filterIdentifier: [bundleId],
+                        fieldsBundleIDs: [.identifier, .name, .seedID, .profiles], // fieldsBundleIDs required so "platform" : "UNIVERSAL" is not received, which makes library crash
+                        include: [.profiles]
+                ))
 
-        let profiles = try await provider.request(request).data
-        return try profiles.map { try $0.toDomain() }
+        let bundleIds = try await provider.request(request)
+
+        if (bundleIds.data.isEmpty) {
+            throw ZBuildError("No applications found with bundle id \(bundleId)")
+        }
+
+        // could be a useful filter but we have to specify fieldsBundleIDs and appearently we don't get relationships then
+        let profileIds: [String] = bundleIds.data
+                .filter { $0.attributes?.identifier == bundleId }
+                .compactMap { bundleId -> [BundleID.Relationships.Profiles.Datum]? in bundleId.relationships?.profiles?.data }
+                .flatMap { $0 }
+                .map { $0.id }
+
+        let profiles = bundleIds.included?.filter { included in
+            if case let .profile(content) = included {
+                return profileIds.contains(content.id) && isActiveProfile(attributes: content.attributes, profileType: profileType)
+            } else {
+                return false
+            }
+        }.compactMap { included -> Profile? in
+            if case let .profile(content) = included {
+                return content
+            } else {
+                return nil
+            }
+        }
+
+        if let profiles = profiles, !profiles.isEmpty {
+            return try profiles.first?.toDomain()
+        } else {
+            throw ZBuildError("No Active profiles found for bundleId: \(bundleId)")
+        }
     }
 
-    func getProvisioningProfile(bundleId: String) async throws -> DomainProfile? {
-        let profiles = try await getProvisioningProfileIds()
-
-        print("Getting bundle IDs for profiles...")
-        var found: Profile?
-        let bundleIdToProfile = try await profiles.asyncMap { profile -> (BundleID?, Profile) in
-            if (found == nil) {
-                let request = APIEndpoint
-                        .v1
-                        .profiles.id(profile.id)
-                        .bundleID
-                        .get(fieldsBundleIDs: [.identifier, .name])
-
-                let bundleIdDto = try await provider.request(request).data
-                print("found bundle id: \(bundleIdDto.attributes?.identifier) for profile: \(profile.id)")
-                if (bundleIdDto.attributes?.identifier == bundleId) {
-                    found = profile
-                }
-                return (bundleIdDto, profile)
-            }
-            return (nil, profile)
-        }
-
-//        let relevantProfile = bundleIdToProfile.filter { (id, profile) in id.attributes?.identifier == bundleId }.first?.1
-
-        print("Found profile for bundle id \(bundleId): \(found)")
-        if let relevantProfile = found {
-            return try await getProvisionProfile(id: relevantProfile.id)
-        } else {
-            return nil
-        }
+    private func isActiveProfile(attributes: Profile.Attributes?, profileType: Profile.Attributes.ProfileType?) -> Bool {
+        attributes?.profileState == .active && (profileType == nil || attributes?.profileType == profileType)
     }
 
     private func getProvisioningProfileIds() async throws -> [Profile] {

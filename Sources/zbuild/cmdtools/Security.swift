@@ -49,7 +49,7 @@ extension Security {
         let certName = UUID().uuidString + ".cer"
         let file = try tempDir.createFileIfNeeded(at: certName)
         try file.write(data)
-        var args = ["import", file.path, "-k", keyChain]
+        let args = ["import", file.path, "-k", keyChain]
         try await execute(arguments: args)
     }
 
@@ -92,6 +92,9 @@ extension Security {
                 chains.append(cleaned)
             }
         }
+
+        // remove duplicate entries
+        chains = Array(Set(chains))
 
         var args = ["list-keychains", "-d", "user", "-s"]
         args.append(contentsOf: chains)

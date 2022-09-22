@@ -39,20 +39,8 @@ struct Archive: AsyncParsableCommand {
 
         print("Found Bundle id: \(bundleId)")
 
-        let getProfile = GetProfileInteractor()
+        let getProfile = GetAndInstallProfileInteractor()
         let profile = try await getProfile(bundleId: bundleId)
-
-        guard let profile = profile else {
-            throw ZBuildError(message: "No profile found for bundle \(bundleId)")
-        }
-
-        print("Using provisioning profile: \(profile)")
-
-        if profile.type == .remote {
-            print("Installing profile locally...")
-            let installProfile = InstallProvisioningProfileInteractor()
-            try await installProfile(profile: profile)
-        }
 
         // TODO check if profile matches signing key
 

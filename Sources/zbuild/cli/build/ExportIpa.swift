@@ -33,21 +33,13 @@ struct ExportIpa: AsyncParsableCommand {
         let acapi = try? ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKeyPath: options.authenticationKeyPath)
         Container.acApi.register { acapi }
 
-        let getProfile = GetProfileInteractor()
+        let getProfile = GetAndInstallProfileInteractor()
         let profile = try await getProfile(bundleId: bundleId)
 
         let installKey = InstallSigningKeyInteractor(tempDir: tempDir)
         try await installKey(signingKeyPath: signingKeyPath, signingKeyPassword: signingKeyPassword)
 
         // TODO check if profile matches signing key
-
-        var provisioningProfileName: String
-        if let profile = profile {
-            print("Using profile: \(profile.name) uuid:\(profile.uuid)")
-            provisioningProfileName = profile.name
-        } else {
-            throw ZBuildError(message: "No profile found for bundle \(bundleId)")
-        }
 
         print("Writing exportOptions.plist")
         let write = WritePlistInteractor()
@@ -60,10 +52,13 @@ struct ExportIpa: AsyncParsableCommand {
             }
         }
 
-        try write(outputFile: plistFile, options: ExportOptions(
-            bundleId: bundleId,
-            provisioningProfileName: provisioningProfileName
-        ))
+        let exportOptions = ExportOptions(
+                bundleId: bundleId,
+                provisioningProfileName: profile.name
+        )
+
+        print("exportOptions: \(exportOptions)")
+        try write(outputFile: plistFile, options: exportOptions)
 
         let xcarchive = archivePath ?? LocationDefaults.getXCArchivePath(for: scheme)
         let exportPath = exportPath ?? LocationDefaults.getIpaExportDir(for: scheme)

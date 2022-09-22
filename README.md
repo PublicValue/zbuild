@@ -19,28 +19,37 @@ cat <path-to-keyfile> | base64 -e > signing_key.p12.b64
 # Building
 ```bash
 zbuild archive 
+  [\<project-dir>] 
   --scheme <scheme> 
   --authentication-key-path <path-to-authkey-file> 
   --authentication-key-id <authkey-id> 
   --authentication-key-issuer-id <authkey-issuer-id> 
-  [\<project-dir>] 
   --signing-key-path <path to base64-encoded signing key>
   --signing-key-password <password to base64-encoded signing key>
   ```
 
+Authentication key is used to fetch Provisioning Profiles.
+
 # Export IPA
 ```bash
 zbuild export-ipa
-  --scheme <scheme>
   [<project-dir>] 
+  --scheme <scheme>
+  --authentication-key-path <path-to-authkey-file> 
+  --authentication-key-id <authkey-id> 
+  --authentication-key-issuer-id <authkey-issuer-id> 
+  --signing-key-path <path to base64-encoded signing key>
+  --signing-key-password <password to base64-encoded signing key>
 ```
+
+Authentication key is used to fetch Provisioning Profiles.
 
 # Upload IPA
 ```bash
 zbuild upload-ipa 
   [<project-dir>]  
+  --scheme <scheme>
   --authentication-key-path <path-to-authkey-file> 
   --authentication-key-id <authkey-id> 
   --authentication-key-issuer-id <authkey-issuer-id>
-  --scheme <scheme>
 ```

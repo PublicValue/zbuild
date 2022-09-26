@@ -86,7 +86,17 @@ class ACApi {
         }
 
         if let profiles = profiles, !profiles.isEmpty {
-            return try profiles.first?.toDomain()
+            if profiles.count > 1 {
+                print("Found multiple profiles:")
+                for profile in profiles {
+                    print("\(profile.attributes?.name ?? "")")
+                }
+                let notManaged = profiles.filter { !($0.attributes?.name ?? "").contains("iOS Team")}
+                print("Using: \(notManaged.first?.attributes?.name ?? "")")
+                return try notManaged.first?.toDomain()
+            } else {
+                return try profiles.first?.toDomain()
+            }
         } else {
             throw ZBuildError("No Active profiles found for bundleId: \(bundleId)")
         }

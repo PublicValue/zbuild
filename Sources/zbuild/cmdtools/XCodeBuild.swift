@@ -64,6 +64,10 @@ class XCodeBuild {
         try xcodebuild.run()
         xcodebuild.waitUntilExit()
 
+        if xcodebuild.terminationStatus != 0 {
+            throw ZBuildError(message: "Command failed with code: \(xcodebuild.terminationStatus))")
+        }
+
 //        let exitStatus:ExitStatus?
 //        if let xcbeautify = xcbeautify, let xcodebuild = xcodebuild {
 //            // pipe output through xcbeautify

@@ -13,7 +13,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", exact: "1.1.4"),
         .package(url: "https://github.com/AvdLee/appstoreconnect-swift-sdk.git", exact: "2.2.0"),
         .package(url: "https://github.com/JohnSundell/Files", exact: "4.2.0"),
-        .package(url: "https://github.com/Zollerboy1/SwiftCommand.git", exact: "1.1.2"),
+        .package(url: "https://github.com/kalinjul/SwiftCommand", exact: "1.1.2-xcode14"),
         .package(url: "https://github.com/hmlongco/Factory.git", exact: "1.2.8" )
     ],
     targets: [

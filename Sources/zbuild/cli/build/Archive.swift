@@ -14,7 +14,9 @@ struct Archive: AsyncParsableCommand {
     )
 
     @Option var scheme: String
+
     @OptionGroup var options: AuthenticationOptions
+    @OptionGroup var xcoptions: XcodeOptions
 
     @Argument var projectDir: String = "."
     @Option var archivePath: String = FileManager.default.currentDirectoryPath + "/build"
@@ -32,7 +34,7 @@ struct Archive: AsyncParsableCommand {
 
         let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
-        let xcbuild = XCodeBuild(workingDir: projectDir)
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
         let xcrun = XCRun(workingDir: projectDir)
 
         let bundleId = try await xcbuild.getBundleId()
@@ -55,7 +57,7 @@ struct Archive: AsyncParsableCommand {
 
         print("Archiving to: \(archivePath.path)")
 
-        try await xcbuild.execute(arguments: [
+        let args = [
             "archive",
             "-sdk", "iphoneos",
             "-scheme", scheme,
@@ -67,7 +69,12 @@ struct Archive: AsyncParsableCommand {
             "CODE_SIGN_STYLE=Manual",
             "CODE_SIGN_IDENTITY=iPhone Distribution",
             "PROVISIONING_PROFILE=\(profile.uuid)"
-        ])
+        ]
+
+        print("Calling:")
+        print("xcodebuild \(args.joined(separator: " "))")
+
+        try await xcbuild.execute(arguments: args)
 
         let deleteKey = DeleteKeyChainInteractor()
         try await deleteKey()

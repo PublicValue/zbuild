@@ -20,6 +20,7 @@ struct ExportIpa: AsyncParsableCommand {
     @Option var scheme: String
 
     @OptionGroup var options: AuthenticationOptions
+    @OptionGroup var xcoptions: XcodeOptions
 
     @Option(help: "Base64 encoded signing key location") var signingKeyPath: String
     @Option(help: "Password for the signing key, if any") var signingKeyPassword: String?
@@ -27,8 +28,8 @@ struct ExportIpa: AsyncParsableCommand {
     mutating func run() async throws {
         let tempDir = try LocationDefaults.getTempDir()// try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
-        let xcodebuild = XCodeBuild(workingDir: projectDir)
-        let bundleId = try await xcodebuild.getBundleId()
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
+        let bundleId = try await xcbuild.getBundleId()
 
         let acapi = try? ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKeyPath: options.authenticationKeyPath)
         Container.acApi.register { acapi }
@@ -64,7 +65,7 @@ struct ExportIpa: AsyncParsableCommand {
         let exportPath = exportPath ?? LocationDefaults.getIpaExportDir(for: scheme)
 
         print("Exporting to: \(exportPath)")
-        try await xcodebuild.exportIpa(
+        try await xcbuild.exportIpa(
             archivePath: xcarchive,
             exportPath: exportPath,
             exportOptionsPlist: plistFile.path

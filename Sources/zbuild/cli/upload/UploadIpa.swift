@@ -15,6 +15,7 @@ struct UploadIpa: AsyncParsableCommand {
     @Argument var projectDir: String = "."
 
     @OptionGroup var options: AuthenticationOptions
+    @OptionGroup var xcoptions: XcodeOptions
 
     @Option(help: "The path to the ipa to upload. Can be left empty if you set scheme.") var ipaPath: String?
     @Option(help: "If you set scheme, ipaPath will be inferred using defaults from exportIpa command") var scheme: String?
@@ -29,8 +30,8 @@ struct UploadIpa: AsyncParsableCommand {
         }
 
         let xcrun = XCRun()
-        let xcodebuild = XCodeBuild(workingDir: projectDir)
-        let productName = try await xcodebuild.getProductName()
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
+        let productName = try await xcbuild.getProductName()
 
         let ipaFile: File
         if let scheme = scheme {

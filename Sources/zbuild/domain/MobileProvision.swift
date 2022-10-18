@@ -6,7 +6,7 @@
 //  Copyright © 2018 ProcessOne.
 //  Distributed under Apache License v2
 //
-// Added by Julian Kalinowski: decoding of application-identifier and uuid
+// Added by Julian Kalinowski: decoding of application-identifier and uuid, fix decoding of isXcodeManaged
 //
 
 import Foundation
@@ -29,7 +29,7 @@ struct MobileProvision: Decodable {
     var name: String
     var appIDName: String
     var platform: [String]
-    var isXcodeManaged: Bool? = false
+    var isXcodeManaged: Bool
     var creationDate: Date
     var expirationDate: Date
     var entitlements: Entitlements
@@ -113,6 +113,7 @@ extension MobileProvision {
             let provision = try decoder.decode(MobileProvision.self, from: plist)
             return provision
         } catch {
+            print("\(error)")
             // TODO: log / handle error
             return nil
         }

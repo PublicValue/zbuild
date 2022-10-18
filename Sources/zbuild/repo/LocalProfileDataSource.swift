@@ -11,10 +11,10 @@ class LocalProfileDataSource {
 
     func getLocalProfile(bundleId: String) throws -> DomainProfile? {
         let profileDir = try getOrCreateFolder(profilePath)
-        print("Reading profiles from: \(profileDir)")
         guard let profileDir = profileDir else {
             throw ZBuildError("Provision Profile dir not found and could not be created: \(profilePath)")
         }
+        print("Reading profiles from: \(profileDir.path)")
         let profiles: [(MobileProvision, File)] = profileDir.files.map { file -> (MobileProvision, File)? in
                     let profile = MobileProvision.read(from: file.path)
                     if let profile = profile {
@@ -25,7 +25,7 @@ class LocalProfileDataSource {
                 }
                 .compactMap { $0 }
                 .filter { (profile, file) in profile.bundleId == bundleId }
-
+                .filter { (profile, file) in !profile.isXcodeManaged }
 
         let result = { () -> (MobileProvision, File)? in
                 if profiles.isEmpty {

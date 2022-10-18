@@ -30,7 +30,7 @@ struct UploadIpa: AsyncParsableCommand {
         }
 
         let xcrun = XCRun()
-        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet, configuration: xcoptions.configuration)
         let productName = try await xcbuild.getProductName()
 
         let ipaFile: File

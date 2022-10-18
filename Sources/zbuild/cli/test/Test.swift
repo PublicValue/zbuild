@@ -19,7 +19,7 @@ struct Test: AsyncParsableCommand {
 
     mutating func run() async throws {
 
-        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet, configuration: xcoptions.configuration)
         try await xcbuild.execute(arguments: [
             "-scheme", scheme,
             "-sdk", "iphonesimulator",

@@ -11,4 +11,7 @@ struct XcodeOptions : ParsableArguments {
 
     @Flag(help: "Enable xcode -quiet flag")
     var quiet: Bool = false
+
+    @Option(help: "Configuration to pass to xcodebuild")
+    var configuration: String = "Release"
 }

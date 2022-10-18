@@ -28,7 +28,7 @@ struct ExportIpa: AsyncParsableCommand {
     mutating func run() async throws {
         let tempDir = try LocationDefaults.getTempDir()// try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
-        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet, configuration: xcoptions.configuration)
         let bundleId = try await xcbuild.getBundleId()
 
         let acapi = try? ACApi(issuerID: options.authenticationKeyIssuerID, privateKeyId: options.authenticationKeyID, privateKeyPath: options.authenticationKeyPath)

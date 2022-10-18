@@ -34,7 +34,7 @@ struct Archive: AsyncParsableCommand {
 
         let tempDir = try Folder(path: "").createSubfolderIfNeeded(withName: "build")
 
-        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet)
+        let xcbuild = XCodeBuild(workingDir: projectDir, xcbeautify: xcoptions.xcbeautify, quiet: xcoptions.quiet, configuration: xcoptions.configuration)
         let xcrun = XCRun(workingDir: projectDir)
 
         let bundleId = try await xcbuild.getBundleId()
@@ -63,8 +63,7 @@ struct Archive: AsyncParsableCommand {
             "-scheme", scheme,
             "-scmProvider", "system",
             "-destination", "generic/platform=iOS",
-            "-configuration", "Release",
-            "-allowProvisioningUpdates",
+//            "-allowProvisioningUpdates",
             "-archivePath", archivePath.path,
             "CODE_SIGN_STYLE=Manual",
             "CODE_SIGN_IDENTITY=iPhone Distribution",

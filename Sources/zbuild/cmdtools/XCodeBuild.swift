@@ -11,11 +11,13 @@ class XCodeBuild {
     let workingDir: String
     let xcbeautifyEnabled: Bool
     let quiet: Bool
+    let configuration: String
 
-    init(workingDir: String = "", xcbeautify: Bool, quiet: Bool) {
+    init(workingDir: String = "", xcbeautify: Bool, quiet: Bool, configuration: String) {
         self.workingDir = workingDir
         self.xcbeautifyEnabled = xcbeautify
         self.quiet = quiet
+        self.configuration = configuration
     }
 
     func execute(arguments: [String]) async throws {
@@ -27,6 +29,8 @@ class XCodeBuild {
         if quiet {
             args.append("-quiet")
         }
+        args.append("-configuration")
+        args.append(configuration)
 
         let xcodebuild = Process()
         let xcbuildOutput = Pipe()

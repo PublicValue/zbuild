@@ -13,7 +13,7 @@ struct Test: AsyncParsableCommand {
 
     @Option var scheme: String
     @Argument var projectDir: String = "."
-    @Option var destination: String = "platform=iOS Simulator,name=iPhone 13,OS=15.5"
+    @Option var destination: String = "platform=iOS Simulator,name=iPhone 13,OS=16.0"
 
     @OptionGroup var xcoptions: XcodeOptions
 
